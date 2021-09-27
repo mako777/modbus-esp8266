@@ -60,7 +60,11 @@ If defined regisers count will be limited.
 #define MODBUSIP_TIMEOUT 1000
 #define MODBUSIP_UNIT	  255
 #define MODBUSIP_MAX_TRANSACTIONS 16
-#define MODBUSIP_MAX_CLIENTS	  4
+#if defined(ESP32)
+#define MODBUSIP_MAX_CLIENTS    8
+#else
+#define MODBUSIP_MAX_CLIENTS    4
+#endif
 #define MODBUSIP_UNIQUE_CLIENTS
 #define MODBUSIP_MAX_READMS 100
 #define MODBUSIP_FULL

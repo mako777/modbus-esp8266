@@ -77,6 +77,7 @@ class ModbusTCPTemplate : public Modbus {
 	int8_t getFreeClient();    // Returns free slot position
 	int8_t getSlave(IPAddress ip);
 	int8_t getMaster(IPAddress ip);
+	public:
 	uint16_t send(String host, TAddress startreg, cbTransaction cb, uint8_t unit = MODBUSIP_UNIT, uint8_t* data = nullptr, bool waitResponse = true);
 	uint16_t send(const char* host, TAddress startreg, cbTransaction cb, uint8_t unit = MODBUSIP_UNIT, uint8_t* data = nullptr, bool waitResponse = true);
 	uint16_t send(IPAddress ip, TAddress startreg, cbTransaction cb, uint8_t unit = MODBUSIP_UNIT, uint8_t* data = nullptr, bool waitResponse = true);
@@ -271,7 +272,8 @@ void ModbusTCPTemplate<SERVER, CLIENT>::task() {
 							if (trans) { // if valid transaction id
 								if ((_frame[0] & 0x7F) == trans->_frame[0]) { // Check if function code the same as requested
 									// Procass incoming frame as master
-									masterPDU(_frame, trans->_frame, trans->startreg, trans->data);
+									frame_arg_t transData = { _MBAP.unitId, tcpclient[n]->remoteIP(), __swap_16(_MBAP.transactionId) };
+									masterPDU(_frame, trans->_frame, trans->startreg, trans->data, (void*)&transData);
 								} else {
 									_reply = EX_UNEXPECTED_RESPONSE;
 								}

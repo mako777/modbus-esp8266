@@ -740,7 +740,12 @@ void Modbus::bitsToBool(bool* dst, uint8_t* src, uint16_t numregs) {
 	}
 }
 
-void Modbus::masterPDU(uint8_t* frame, uint8_t* sourceFrame, TAddress startreg, uint8_t* output) {
+void Modbus::masterPDU(uint8_t* frame, uint8_t* sourceFrame, TAddress startreg, uint8_t* output, void* rawData) {
+    if (_cbRaw) {
+		_reply = _cbRaw(_frame, _len, rawData);
+        if (_reply != EX_PASSTHROUGH)
+            return;
+	}
     uint8_t fcode  = frame[0];
     if ((fcode & 0x80) != 0) { // Check if error responce
 	    _reply = frame[1];
@@ -898,6 +903,10 @@ Modbus::ResultCode Modbus::fileOp(Modbus::FunctionCode fc, uint16_t fileNum, uin
     }
     #endif
 
+bool Modbus::onRaw(cbRaw cb) {
+    _cbRaw = cb;
+    return true;
+}
 Modbus::ResultCode Modbus::_onRequestDefault(Modbus::FunctionCode fc, const RequestData data) {
     return EX_SUCCESS;
 }

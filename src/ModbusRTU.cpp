@@ -72,7 +72,7 @@ bool ModbusRTUTemplate::rawSend(uint8_t slaveId, uint8_t* frame, uint8_t len) {
     }
 	#if defined(ESP32)
 	//vTaskDelay(1);
-	portENTER_CRITICAL(&mux);
+	//portENTER_CRITICAL(&mux);
 	#endif
     _port->write(slaveId);  	//Send slaveId
     _port->write(frame, len); 	// Send PDU
@@ -82,7 +82,7 @@ bool ModbusRTUTemplate::rawSend(uint8_t slaveId, uint8_t* frame, uint8_t len) {
     if (_txPin >= 0)
         digitalWrite(_txPin, _direct?LOW:HIGH);
 	#if defined(ESP32)
-    portEXIT_CRITICAL(&mux);
+    //portEXIT_CRITICAL(&mux);
  	#endif
 	//delay(_t);
 	return true;
@@ -112,7 +112,7 @@ uint16_t ModbusRTUTemplate::send(uint8_t slaveId, TAddress startreg, cbTransacti
 void ModbusRTUTemplate::task() {
 	#if defined(ESP32)
 	//taskENTER_CRITICAL(&mux);
-	vTaskSuspendAll();
+	//vTaskSuspendAll();
 	#endif
     if (_port->available() > _len) {
         _len = _port->available();
@@ -121,7 +121,7 @@ void ModbusRTUTemplate::task() {
 	if (_len == 0) {
 		#if defined(ESP32)
     	//taskEXIT_CRITICAL(&mux);
-		xTaskResumeAll();
+		//xTaskResumeAll();
  		#endif
 		if (isMaster) cleanup();
 		return;
@@ -130,7 +130,7 @@ void ModbusRTUTemplate::task() {
 		if (millis() - t < _t) {
 			#if defined(ESP32)
     		//taskEXIT_CRITICAL(&mux);
-			xTaskResumeAll();
+			//xTaskResumeAll();
  			#endif
 			return;
 		}
@@ -145,7 +145,7 @@ void ModbusRTUTemplate::task() {
 			if (millis() - taskStart > MODBUSRTU_MAX_READMS) { // Prevent from task() executed too long
 				#if defined(ESP32)
     			//taskEXIT_CRITICAL(&mux);
-				xTaskResumeAll();
+				//xTaskResumeAll();
  				#endif
 				return;
 			}
@@ -153,7 +153,7 @@ void ModbusRTUTemplate::task() {
 	}
 	#if defined(ESP32)
     //taskEXIT_CRITICAL(&mux);
-	xTaskResumeAll();
+	//xTaskResumeAll();
  	#endif
 
     uint8_t address = _port->read(); //first byte of frame = address

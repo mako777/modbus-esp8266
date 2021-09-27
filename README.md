@@ -47,6 +47,9 @@ For more information about Modbus see:
 ## Last Changes
 
 ```diff
+// 5.0.0-DEV
+- True ModbusRTU to ModbusTCP Server bridge
+- ModbusAsyncTCP 
 // 4.0.0
 + ModbusTLS: Modbus TCP Security Client/Server
 + ModbusTLS: ESP8266 Client/Server

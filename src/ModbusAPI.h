@@ -126,6 +126,9 @@ class ModbusAPI : public T {
 	uint16_t maskHreg(TYPEID slaveId, uint16_t offset, uint16_t andMask, uint16_t orMask, cbTransaction cb = nullptr, uint8_t unit = MODBUSIP_UNIT);
 	template <typename TYPEID>
 	uint16_t readWriteHreg(TYPEID slaveId, uint16_t readOffset, uint16_t* readValue, uint16_t readNumregs, uint16_t writeOffset, uint16_t* writeValue, uint16_t writeNumregs, cbTransaction cb = nullptr, uint8_t unit = MODBUSIP_UNIT);
+
+	template <typename TYPEID>
+	uint16_t writeRaw(TYPEID ip, uint8_t* data, uint16_t len, cbTransaction cb, uint8_t unit);
 };
 
 // FNAME	writeCoil, writeIsts, writeHreg, writeIreg
@@ -394,4 +397,18 @@ uint16_t ModbusAPI<T>::readWriteHreg(TYPEID ip, \
         frame[i] = __swap_16(writeValue[i]);
     }
     return this->send(ip, HREG(readOffset), cb, unit, (uint8_t*)readValue);
+};
+
+template <class T>
+template <typename TYPEID>
+uint16_t ModbusAPI<T>::writeRaw(TYPEID ip, \
+			uint8_t* data, uint16_t len,
+			cbTransaction cb, uint8_t unit) {
+	free(this->_frame);
+	this->_frame = (uint8_t*)malloc(len);
+	if (!this->_frame)
+		return 0;
+	this->_len = len;
+	memcpy(this->_frame, data, len);
+    return this->send(ip, HREG(0), cb, unit);
 };

@@ -132,7 +132,8 @@ class Modbus {
             EX_UNEXPECTED_RESPONSE  = 0xE3, // Custom. Returned result doesn't mach transaction
             EX_TIMEOUT              = 0xE4, // Custom. Operation not finished within reasonable time
             EX_CONNECTION_LOST      = 0xE5, // Custom. Connection with device lost
-            EX_CANCEL               = 0xE6  // Custom. Transaction/request canceled
+            EX_CANCEL               = 0xE6, // Custom. Transaction/request canceled
+            EX_PASSTHROUGH          = 0xE7  // Custom. Indicate to continue processing on callback exit
         };
         union RequestData {
             struct {
@@ -166,6 +167,22 @@ class Modbus {
                 orMask = m2;
             };
         };
+	    union frame_arg_t {
+		    uint8_t slaveId;
+		    struct {
+			    uint8_t unitId;
+			    uint32_t ipaddr;
+			    uint16_t transactionId = 0;
+		    };
+            frame_arg_t(uint8_t s) {
+                slaveId = s;
+            };
+            frame_arg_t(uint8_t u, uint32_t a, uint16_t t) {
+                unitId = u;
+                ipaddr = a;
+                transactionId = t;
+            };
+	    };
 
         ~Modbus();
 
@@ -233,7 +250,7 @@ class Modbus {
         void exceptionResponse(FunctionCode fn, ResultCode excode); // Fills _frame with response
         void successResponce(TAddress startreg, uint16_t numoutputs, FunctionCode fn);  // Fills frame with response
         void slavePDU(uint8_t* frame);    //For Slave
-        void masterPDU(uint8_t* frame, uint8_t* sourceFrame, TAddress startreg, uint8_t* output = nullptr);   //For Master
+        void masterPDU(uint8_t* frame, uint8_t* sourceFrame, TAddress startreg, uint8_t* output = nullptr, void* rawData = nullptr);   //For Master
         // frame - data received form slave
         // sourceFrame - data have sent fo slave
         // startreg - local register to start put data to
@@ -264,14 +281,18 @@ class Modbus {
         virtual uint32_t eventSource() {return 0;}
         #if defined(MODBUS_USE_STL)
         typedef std::function<ResultCode(FunctionCode, const RequestData)> cbRequest; // Callback function Type
+        typedef std::function<ResultCode(uint8_t*, uint8_t, void*)> cbRaw; // Callback function Type
         #else
         typedef ResultCode (*cbRequest)(FunctionCode fc, const RequestData data); // Callback function Type
+        typedef ResultCode (*cbRaw)(uint8_t*, uint8, void*); // Callback function Type
         #endif
 
     protected:
+        cbRaw _cbRaw = nullptr;
         static ResultCode _onRequestDefault(FunctionCode fc, const RequestData data);
         cbRequest _onRequest = _onRequestDefault;
     public:
+        bool onRaw(cbRaw cb = nullptr);
         bool onRequest(cbRequest cb = _onRequestDefault);
     #if defined (MODBUSAPI_OPTIONAL)
     protected:
