@@ -284,7 +284,7 @@ class Modbus {
         typedef std::function<ResultCode(uint8_t*, uint8_t, void*)> cbRaw; // Callback function Type
         #else
         typedef ResultCode (*cbRequest)(FunctionCode fc, const RequestData data); // Callback function Type
-        typedef ResultCode (*cbRaw)(uint8_t*, uint8, void*); // Callback function Type
+        typedef ResultCode (*cbRaw)(uint8_t*, uint8_t, void*); // Callback function Type
         #endif
 
     protected:
