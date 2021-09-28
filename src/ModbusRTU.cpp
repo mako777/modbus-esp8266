@@ -68,12 +68,13 @@ bool ModbusRTUTemplate::rawSend(uint8_t slaveId, uint8_t* frame, uint8_t len) {
 #endif
     if (_txPin >= 0) {
         digitalWrite(_txPin, _direct?HIGH:LOW);
+#if !defined(ESP32)
         delayMicroseconds(1000);
+#endif
     }
-	#if defined(ESP32)
-	//vTaskDelay(1);
-	//portENTER_CRITICAL(&mux);
-	#endif
+#if defined(ESP32)
+	vTaskDelay(0);
+#endif
     _port->write(slaveId);  	//Send slaveId
     _port->write(frame, len); 	// Send PDU
     _port->write(newCrc >> 8);	//Send CRC
@@ -81,16 +82,14 @@ bool ModbusRTUTemplate::rawSend(uint8_t slaveId, uint8_t* frame, uint8_t len) {
     _port->flush();
     if (_txPin >= 0)
         digitalWrite(_txPin, _direct?LOW:HIGH);
-	#if defined(ESP32)
-    //portEXIT_CRITICAL(&mux);
- 	#endif
 	//delay(_t);
 	return true;
 }
 
 uint16_t ModbusRTUTemplate::send(uint8_t slaveId, TAddress startreg, cbTransaction cb, uint8_t unit, uint8_t* data, bool waitResponse) {
     bool result = false;
-	if (!_slaveId && _len && _frame) { // Check if waiting for previous request result and _frame filled
+	if ((!isMaster || !_slaveId) && _len && _frame) { // Check if waiting for previous request result and _frame filled
+	//if (_len && _frame) { // Check if waiting for previous request result and _frame filled
 		rawSend(slaveId, _frame, _len);
 		if (waitResponse && slaveId) {
         	_slaveId = slaveId;
@@ -110,28 +109,19 @@ uint16_t ModbusRTUTemplate::send(uint8_t slaveId, TAddress startreg, cbTransacti
 }
 
 void ModbusRTUTemplate::task() {
-	#if defined(ESP32)
-	//taskENTER_CRITICAL(&mux);
-	//vTaskSuspendAll();
-	#endif
+#if defined(ESP32)
+	vTaskDelay(0);
+#endif
     if (_port->available() > _len) {
         _len = _port->available();
         t = millis();
     }
 	if (_len == 0) {
-		#if defined(ESP32)
-    	//taskEXIT_CRITICAL(&mux);
-		//xTaskResumeAll();
- 		#endif
 		if (isMaster) cleanup();
 		return;
 	}
 	if (isMaster) {
 		if (millis() - t < _t) {
-			#if defined(ESP32)
-    		//taskEXIT_CRITICAL(&mux);
-			//xTaskResumeAll();
- 			#endif
 			return;
 		}
 	}
@@ -143,33 +133,26 @@ void ModbusRTUTemplate::task() {
         		t = millis();
 			}
 			if (millis() - taskStart > MODBUSRTU_MAX_READMS) { // Prevent from task() executed too long
-				#if defined(ESP32)
-    			//taskEXIT_CRITICAL(&mux);
-				//xTaskResumeAll();
- 				#endif
 				return;
 			}
 		}
 	}
-	#if defined(ESP32)
-    //taskEXIT_CRITICAL(&mux);
-	//xTaskResumeAll();
- 	#endif
 
+	bool valid_frame = true;
     uint8_t address = _port->read(); //first byte of frame = address
     _len--; // Decrease by slaveId byte
     if (isMaster && _slaveId == 0) {    // Check if slaveId is set
-        for (uint8_t i=0 ; i < _len ; i++) _port->read();   // Skip packet if is not expected
-        _len = 0;
-		//if (isMaster) cleanup();
-        return;
+		valid_frame = false;
     }
     if (address != MODBUSRTU_BROADCAST && address != _slaveId) {     // SlaveId Check
+		valid_frame = false;
+    }
+	if (!valid_frame && !_cbRaw) {
         for (uint8_t i=0 ; i < _len ; i++) _port->read();   // Skip packet if SlaveId doesn't mach
         _len = 0;
 		if (isMaster) cleanup();
         return;
-    }
+	}
 
 	free(_frame);	//Just in case
     _frame = (uint8_t*) malloc(_len);
@@ -199,6 +182,16 @@ void ModbusRTUTemplate::task() {
 		if (isMaster) cleanup();
         return;
     }
+	if (_cbRaw) {
+		frame_arg_t header_data = { address };
+		_reply = _cbRaw(_frame, _len, (void*)&header_data);
+        if (_reply != EX_PASSTHROUGH)
+            goto cleanup;
+		}
+	}
+	if (!valid_frame) {
+		goto cleanup;
+	}
     if (isMaster) {
         _reply = EX_SUCCESS;
         if ((_frame[0] & 0x7F) == _sentFrame[0]) { // Check if function code the same as requested
@@ -222,6 +215,7 @@ void ModbusRTUTemplate::task() {
 			rawSend(_slaveId, _frame, _len);
     }
     // Cleanup
+cleanup:
     free(_frame);
     _frame = nullptr;
     _len = 0;

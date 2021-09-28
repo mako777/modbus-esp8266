@@ -48,43 +48,12 @@ For more information about Modbus see:
 
 ```diff
 // 5.0.0-DEV
-- True ModbusRTU to ModbusTCP Server bridge
-- ModbusAsyncTCP 
-// 4.0.0
-+ ModbusTLS: Modbus TCP Security Client/Server
-+ ModbusTLS: ESP8266 Client/Server
-+ Test: TLS ESP8266 Client/Server
-+ Examples: TLS added
-+ ModbusTLS: ESP32 Client
-+ Build with no STL dependency
-+ Test: No-STL mode
-+ ModbusTCP: ModbusEthernet - W5x00 Ethernet library support
-+ Test: W5x00 support
-+ API: Implementation code merge
-+ API: Access ModbusTCP server by name
-+ API: Set local multiple registers from an array
-+ ModbusIP => ModbusTCP
-+ 0x14 - Read File Records function
-+ Test: 0x14
-+ 0x15 - Write File Records function
-+ Test: 0x15
-+ Examples: FW update
-+ Test: FW update
-+ 0x16 - Write Mask Register function
-+ Test: 0x16
-+ 0x17 - Read/Write Registers function
-+ Test: 0x17
-+ API: Access control callback for individual Modbus function
-+ Documentation: Update
-+ Remove unneeded register count check in private functions
-+ Check startreg + numreg < 65535
-+ ModbusRTU: ESP32 SoftwareSerial support
-+ ModbusRTU: Fix transaction callback remains assigned after request end
-+ ModbusTCP: Free server connection in destructor
-+ Declare global registers and callbacks as static members
-+ ModbusRTU: Refactor .task() for more relaibe processing of incoming data
-+ API: Declare all callbacks as std::function (for STL)
-+ API: Master/Slave => Client/Server according to [PRESS RELEASE](https://modbus.org/docs/Client-ServerPR-07-2020-final.docx.pdf)
++ Settings: Added MODBUSIP_CONNECTION_TIMEOUT
++ Settings: Set MODBUSIP_MAX_CLIENTS = 8 for ESP32
++ API: Raw Modbus frame processing functionality (TCP/TLS Client/Server, RTU Server)
+- API: Raw Modbus frame processing functionality (RTU Client)
++ Examples: True ModbusRTU to ModbusTCP Server bridge
+- ModbusTCP: ModbusAsyncTCP
 // 4.1.0-DEV
 - ModbusTLS: ESP32 Server
 - Test: TLS ESP32 Server
@@ -103,6 +72,18 @@ For more information about Modbus see:
 - Test: W5x00 with Ethernet library v1
 - Examples: Basic file operations
 - Examples: Revising
+// 4.0.0
++ Support for all Arduino platforms
++ ModbusTLS support ESP8266 Client/Server, ESP32 Client
++ STL and No-STL build type
++ W5x00 Ethernet library support for all platforms
++ 0x14 - Read File Records function
++ 0x15 - Write File Records function
++ 0x16 - Write Mask Register function
++ 0x17 - Read/Write Registers function
++ API extended
++ ModbusRTU ESP32 SoftwareSerial support
++ API: Master/Slave => Client/Server according to [PRESS RELEASE](https://modbus.org/docs/Client-ServerPR-07-2020-final.docx.pdf)
 ```
 
 ## Contributions

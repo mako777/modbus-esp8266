@@ -741,11 +741,13 @@ void Modbus::bitsToBool(bool* dst, uint8_t* src, uint16_t numregs) {
 }
 
 void Modbus::masterPDU(uint8_t* frame, uint8_t* sourceFrame, TAddress startreg, uint8_t* output, void* rawData) {
+/*
     if (_cbRaw) {
 		_reply = _cbRaw(_frame, _len, rawData);
         if (_reply != EX_PASSTHROUGH)
             return;
 	}
+*/
     uint8_t fcode  = frame[0];
     if ((fcode & 0x80) != 0) { // Check if error responce
 	    _reply = frame[1];

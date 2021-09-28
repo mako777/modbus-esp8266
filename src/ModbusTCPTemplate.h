@@ -165,7 +165,7 @@ bool ModbusTCPTemplate<SERVER, CLIENT>::connect(IPAddress ip, uint16_t port) {
 		return false;
 	tcpclient[p] = new CLIENT();
 	BIT_CLEAR(tcpServerConnection, p);
-	if (!tcpclient[p]->connect(ip, port?port:defaultPort)) {
+	if (!tcpclient[p]->connect(ip, port?port:defaultPort, MODBUSIP_CONNECT_TIMEOUT)) {
 		delete(tcpclient[p]);
 		tcpclient[p] = nullptr;
 		return false;
@@ -263,19 +263,29 @@ void ModbusTCPTemplate<SERVER, CLIENT>::task() {
 					} else {
 						//if (tcpclient[n]->localPort() == serverPort) {
 						if (BIT_CHECK(tcpServerConnection, n)) {
-							// Process incoming frame as slave
-							slavePDU(_frame);
+							_reply = EX_PASSTHROUGH;
+							if (_cbRaw) {
+								frame_arg_t transData = { _MBAP.unitId, tcpclient[n]->remoteIP(), __swap_16(_MBAP.transactionId) };
+								_reply = _cbRaw(_frame, _len, &transData);
+							}
+							if (_reply = EX_PASSTHROUGH)
+								slavePDU(_frame); // Process incoming frame as slave
 						} else {
 							// Process reply to master request
 							_reply = EX_SUCCESS;
+							if (_cbRaw) {
+								frame_arg_t transData = { _MBAP.unitId, tcpclient[n]->remoteIP(), __swap_16(_MBAP.transactionId) };
+								_reply = _cbRaw(_frame, _len, &transData);
+							}
 							TTransaction* trans = searchTransaction(__swap_16(_MBAP.transactionId));
 							if (trans) { // if valid transaction id
+								if (_reply == EX_PASSTHROUGH) {
 								if ((_frame[0] & 0x7F) == trans->_frame[0]) { // Check if function code the same as requested
-									// Procass incoming frame as master
-									frame_arg_t transData = { _MBAP.unitId, tcpclient[n]->remoteIP(), __swap_16(_MBAP.transactionId) };
-									masterPDU(_frame, trans->_frame, trans->startreg, trans->data, (void*)&transData);
+									_reply = EX_SUCCESS;
+									masterPDU(_frame, trans->_frame, trans->startreg, trans->data);	// Procass incoming frame as master
 								} else {
 									_reply = EX_UNEXPECTED_RESPONSE;
+								}
 								}
 								if (trans->cb) {
 									trans->cb((ResultCode)_reply, trans->transactionId, nullptr);
