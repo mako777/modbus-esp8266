@@ -13,6 +13,11 @@
 #include <ModbusTCP.h>
 #include <ModbusRTU.h>
 
+#include <vector>
+#include <WiFi.h>
+#include <ModbusTCP.h>
+#include <ModbusRTU.h>
+
 ModbusRTU rtu;
 ModbusTCP tcp;
 
@@ -43,12 +48,14 @@ bool cbTcpTrans(Modbus::ResultCode event, uint16_t transactionId, void* data) { 
 
 // Callback receives raw data from ModbusTCP and sends it on behalf of slave (slaveRunning) to master
 Modbus::ResultCode cbTcpRaw(uint8_t* data, uint8_t len, void* custom) {
-  Serial.printf("TCP: %d bytes\n", len);
   auto src = (Modbus::frame_arg_t*) custom;
+  Serial.print("TCP IP: ");
+  Serial.print(IPAddress(src->ipaddr));
+  Serial.printf(" Fn: %02X, len: %d\n", data[0], len);
   if (transRunning == src->transactionId) { // Check if transaction id is match
     rtu.rawResponce(slaveRunning, data, len);
   } else
-    return Modbus::EX_PASSTHROUG; // Allow frame to be processed by generic ModbusTCP routines
+    return Modbus::EX_PASSTHROUGH; // Allow frame to be processed by generic ModbusTCP routines
   transRunning = 0;
   slaveRunning = 0;
   return Modbus::EX_SUCCESS; // Stop other processing
@@ -57,28 +64,31 @@ Modbus::ResultCode cbTcpRaw(uint8_t* data, uint8_t len, void* custom) {
 
 // Callback receives raw data 
 Modbus::ResultCode cbRtuRaw(uint8_t* data, uint8_t len, void* custom) {
-  Serial.printf("RTU: %d bytes\n", len);
   auto src = (Modbus::frame_arg_t*) custom;
+  Serial.printf("RTU Slave: %d, Fn: %02X, len: %d, ", src->slaveId, data[0], len);
   auto it = std::find_if(mapping.begin(), mapping.end(), [src](slave_map_t& item){return (item.slaveId == src->slaveId);}); // Find mapping
   if (it != mapping.end()) {
     if (!tcp.isConnected(it->ip)) { // Check if connection established
       if (!tcp.connect(it->ip)) { // Try to connect if not
+        Serial.printf("error: Connection timeout\n");
         rtu.errorResponce(it->slaveId, (Modbus::FunctionCode)data[0], Modbus::EX_DEVICE_FAILED_TO_RESPOND); // Send exceprional responce to master if no connection established
         return Modbus::EX_DEVICE_FAILED_TO_RESPOND; // Stop processing the frame
       }
     }
     // Save transaction ans slave it for responce processing
     transRunning = tcp.rawRequest(it->ip, data, len, cbTcpTrans, it->unitId);
+    Serial.printf("transaction: %d\n", transRunning);
     slaveRunning = it->slaveId;
     return Modbus::EX_SUCCESS; // Stop procesing the frame
   }
+  Serial.printf("ignored: No mapping\n");
   return Modbus::EX_PASSTHROUGH; // Process by generic ModbusRTU routines if no mapping found
 }
 
 
 void setup() {
   Serial.begin(115000);
-  WiFi.begin("E2", "fOlissio92");
+  WiFi.begin("SSID", "PASSWORD");
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.print(".");

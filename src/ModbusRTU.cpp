@@ -187,7 +187,6 @@ void ModbusRTUTemplate::task() {
 		_reply = _cbRaw(_frame, _len, (void*)&header_data);
         if (_reply != EX_PASSTHROUGH)
             goto cleanup;
-		}
 	}
 	if (!valid_frame) {
 		goto cleanup;
