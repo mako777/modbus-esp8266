@@ -184,7 +184,7 @@ void ModbusRTUTemplate::task() {
     }
 	_reply = EX_PASSTHROUGH;
 	if (_cbRaw) {
-		frame_arg_t header_data = { address };
+		frame_arg_t header_data = { address, !isMaster };
 		_reply = _cbRaw(_frame, _len, (void*)&header_data);
 	}
 	if (!valid_frame) {
@@ -206,7 +206,7 @@ void ModbusRTUTemplate::task() {
 		}
         _reply = Modbus::REPLY_OFF;    // No reply if master
     } else {
-		if (_reply == EX_PASSTHROUGH)
+		if (_reply == EX_PASSTHROUGH) {
         	slavePDU(_frame);
         	if (address == MODBUSRTU_BROADCAST)
 				_reply = Modbus::REPLY_OFF;    // No reply for Broadcasts

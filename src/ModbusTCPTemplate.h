@@ -272,7 +272,7 @@ void ModbusTCPTemplate<SERVER, CLIENT>::task() {
 						// Note on _reply usage
 						// it's used and set as ReplyCode by slavePDU and as exceptionCode by masterPDU
 						if (_cbRaw) {
-							frame_arg_t transData = { _MBAP.unitId, tcpclient[n]->remoteIP(), __swap_16(_MBAP.transactionId) };
+							frame_arg_t transData = { _MBAP.unitId, tcpclient[n]->remoteIP(), __swap_16(_MBAP.transactionId), BIT_CHECK(tcpServerConnection, n) };
 							_reply = _cbRaw(_frame, _len, &transData);
 						}
 						if (BIT_CHECK(tcpServerConnection, n)) {

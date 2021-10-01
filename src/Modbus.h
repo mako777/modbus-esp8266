@@ -167,20 +167,26 @@ class Modbus {
                 orMask = m2;
             };
         };
-	    union frame_arg_t {
-		    uint8_t slaveId;
-		    struct {
-			    uint8_t unitId;
-			    uint32_t ipaddr;
-			    uint16_t transactionId = 0;
-		    };
-            frame_arg_t(uint8_t s) {
-                slaveId = s;
+
+	    struct frame_arg_t {
+            bool to_server;
+            union {
+		        uint8_t slaveId;
+		        struct {
+			        uint8_t unitId;
+			        uint32_t ipaddr;
+			        uint16_t transactionId;
+		        };
             };
-            frame_arg_t(uint8_t u, uint32_t a, uint16_t t) {
+            frame_arg_t(uint8_t s, bool m = false) {
+                slaveId = s;
+                to_server = m;
+            };
+            frame_arg_t(uint8_t u, uint32_t a, uint16_t t, bool m = false) {
                 unitId = u;
                 ipaddr = a;
                 transactionId = t;
+                to_server = m;
             };
 	    };
 
@@ -250,7 +256,7 @@ class Modbus {
         void exceptionResponse(FunctionCode fn, ResultCode excode); // Fills _frame with response
         void successResponce(TAddress startreg, uint16_t numoutputs, FunctionCode fn);  // Fills frame with response
         void slavePDU(uint8_t* frame);    //For Slave
-        void masterPDU(uint8_t* frame, uint8_t* sourceFrame, TAddress startreg, uint8_t* output = nullptr, void* rawData = nullptr);   //For Master
+        void masterPDU(uint8_t* frame, uint8_t* sourceFrame, TAddress startreg, uint8_t* output = nullptr);   //For Master
         // frame - data received form slave
         // sourceFrame - data have sent fo slave
         // startreg - local register to start put data to
