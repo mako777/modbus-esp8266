@@ -63,7 +63,7 @@ ModbusTCP and ModbusTLS timeouts
 #define MODBUSIP_TIMEOUT 1000
 Outgoing request timeout
 #define MODBUSIP_CONNECT_TIMEOUT 1000
-Outgoing connection attempt timeout
+ESP32 only. Outgoing connection attempt timeout
 */
 #define MODBUSIP_TIMEOUT 1000
 #define MODBUSIP_CONNECT_TIMEOUT 1000

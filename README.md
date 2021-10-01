@@ -48,7 +48,7 @@ For more information about Modbus see:
 
 ```diff
 // 5.0.0-DEV
-+ Settings: Added MODBUSIP_CONNECTION_TIMEOUT
++ Settings: Added MODBUSIP_CONNECTION_TIMEOUT (ESP32 only)
 + Settings: Set MODBUSIP_MAX_CLIENTS = 8 for ESP32
 + API: Raw Modbus frame processing functionality (TCP/TLS Client/Server, RTU Server)
 - API: Raw Modbus frame processing functionality (RTU Client)
