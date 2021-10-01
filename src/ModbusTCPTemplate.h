@@ -165,7 +165,11 @@ bool ModbusTCPTemplate<SERVER, CLIENT>::connect(IPAddress ip, uint16_t port) {
 		return false;
 	tcpclient[p] = new CLIENT();
 	BIT_CLEAR(tcpServerConnection, p);
+#if defined(ESP32)
 	if (!tcpclient[p]->connect(ip, port?port:defaultPort, MODBUSIP_CONNECT_TIMEOUT)) {
+#else
+	if (!tcpclient[p]->connect(ip, port?port:defaultPort)) {
+#endif
 		delete(tcpclient[p]);
 		tcpclient[p] = nullptr;
 		return false;
@@ -248,44 +252,45 @@ void ModbusTCPTemplate<SERVER, CLIENT>::task() {
 				_len--;	// Subtract for read byte
 				for (uint8_t i = 0; tcpclient[n]->available() && i < _len; i++)	// Drop rest of packet
 					tcpclient[n]->read();
-			} else {
+			}
+			else {
 				free(_frame);
 				_frame = (uint8_t*) malloc(_len);
 				if (!_frame) {
 					exceptionResponse((FunctionCode)tcpclient[n]->read(), EX_SLAVE_FAILURE);
 					for (uint8_t i = 0; tcpclient[n]->available() && i < _len; i++)	// Drop packet
 						tcpclient[n]->read();
-				} else {
+				}
+				else {
 					if (tcpclient[n]->readBytes(_frame, _len) < _len) {	// Try to read MODBUS frame
 						exceptionResponse((FunctionCode)_frame[0], EX_ILLEGAL_VALUE);
 						//while (tcpclient[n]->available())	// Drop all incoming (if any)
 						//	tcpclient[n]->read();
-					} else {
-						//if (tcpclient[n]->localPort() == serverPort) {
+					}
+					else {
+						_reply = EX_PASSTHROUGH;
+						// Note on _reply usage
+						// it's used and set as ReplyCode by slavePDU and as exceptionCode by masterPDU
+						if (_cbRaw) {
+							frame_arg_t transData = { _MBAP.unitId, tcpclient[n]->remoteIP(), __swap_16(_MBAP.transactionId) };
+							_reply = _cbRaw(_frame, _len, &transData);
+						}
 						if (BIT_CHECK(tcpServerConnection, n)) {
-							_reply = EX_PASSTHROUGH;
-							if (_cbRaw) {
-								frame_arg_t transData = { _MBAP.unitId, tcpclient[n]->remoteIP(), __swap_16(_MBAP.transactionId) };
-								_reply = _cbRaw(_frame, _len, &transData);
-							}
-							if (_reply = EX_PASSTHROUGH)
+							if (_reply == EX_PASSTHROUGH)
 								slavePDU(_frame); // Process incoming frame as slave
-						} else {
+							else
+								_reply = REPLY_OFF;
+						}
+						else {
 							// Process reply to master request
-							_reply = EX_SUCCESS;
-							if (_cbRaw) {
-								frame_arg_t transData = { _MBAP.unitId, tcpclient[n]->remoteIP(), __swap_16(_MBAP.transactionId) };
-								_reply = _cbRaw(_frame, _len, &transData);
-							}
 							TTransaction* trans = searchTransaction(__swap_16(_MBAP.transactionId));
 							if (trans) { // if valid transaction id
-								if (_reply == EX_PASSTHROUGH) {
 								if ((_frame[0] & 0x7F) == trans->_frame[0]) { // Check if function code the same as requested
-									_reply = EX_SUCCESS;
-									masterPDU(_frame, trans->_frame, trans->startreg, trans->data);	// Procass incoming frame as master
-								} else {
-									_reply = EX_UNEXPECTED_RESPONSE;
+									if (_reply == EX_PASSTHROUGH)
+										masterPDU(_frame, trans->_frame, trans->startreg, trans->data);	// Procass incoming frame as master
 								}
+								else {
+									_reply = EX_UNEXPECTED_RESPONSE;
 								}
 								if (trans->cb) {
 									trans->cb((ResultCode)_reply, trans->transactionId, nullptr);
@@ -305,7 +310,6 @@ void ModbusTCPTemplate<SERVER, CLIENT>::task() {
 					}
 				}
 			}
-			//if (tcpclient[n]->localPort() != serverPort) _reply = REPLY_OFF;	// No replay if it was responce to master
 			if (!BIT_CHECK(tcpServerConnection, n)) _reply = REPLY_OFF;	// No replay if it was responce to master
 			if (_reply != REPLY_OFF) {
 				_MBAP.length = __swap_16(_len+1);     // _len+1 for last byte from MBAP					

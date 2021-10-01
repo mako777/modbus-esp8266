@@ -182,20 +182,19 @@ void ModbusRTUTemplate::task() {
 		if (isMaster) cleanup();
         return;
     }
+	_reply = EX_PASSTHROUGH;
 	if (_cbRaw) {
 		frame_arg_t header_data = { address };
 		_reply = _cbRaw(_frame, _len, (void*)&header_data);
-        if (_reply != EX_PASSTHROUGH)
-            goto cleanup;
 	}
 	if (!valid_frame) {
 		goto cleanup;
 	}
     if (isMaster) {
-        _reply = EX_SUCCESS;
         if ((_frame[0] & 0x7F) == _sentFrame[0]) { // Check if function code the same as requested
 			// Procass incoming frame as master
-			masterPDU(_frame, _sentFrame, _sentReg, _data);
+			if (_reply == EX_PASSTHROUGH)
+				masterPDU(_frame, _sentFrame, _sentReg, _data);
             if (_cb) {
 			    _cb((ResultCode)_reply, 0, nullptr);
 				_cb = nullptr;
@@ -207,11 +206,13 @@ void ModbusRTUTemplate::task() {
 		}
         _reply = Modbus::REPLY_OFF;    // No reply if master
     } else {
-        slavePDU(_frame);
-        if (address == MODBUSRTU_BROADCAST)
-			_reply = Modbus::REPLY_OFF;    // No reply for Broadcasts
-    	if (_reply != Modbus::REPLY_OFF)
-			rawSend(_slaveId, _frame, _len);
+		if (_reply == EX_PASSTHROUGH)
+        	slavePDU(_frame);
+        	if (address == MODBUSRTU_BROADCAST)
+				_reply = Modbus::REPLY_OFF;    // No reply for Broadcasts
+    		if (_reply != Modbus::REPLY_OFF)
+				rawSend(_slaveId, _frame, _len);
+		}
     }
     // Cleanup
 cleanup:
