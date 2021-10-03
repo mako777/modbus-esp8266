@@ -1,5 +1,5 @@
 /*
-  ModbusTCP Server for ClearCode Arduino wrapper
+  ModbusTCP Client for ClearCode Arduino wrapper
 
   (c)2021 Alexander Emelianov (a.m.emelianov@gmail.com)
   https://github.com/emelianov/modbus-esp8266
