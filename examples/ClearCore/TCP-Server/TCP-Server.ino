@@ -1,5 +1,5 @@
 /*
-  ModbusTCP Client for ClearCode Arduino wrapper
+  ModbusTCP Server for ClearCore Arduino wrapper
 
   (c)2021 Alexander Emelianov (a.m.emelianov@gmail.com)
   https://github.com/emelianov/modbus-esp8266
@@ -15,13 +15,17 @@
 class ModbusEthernet : public ModbusAPI<ModbusTCPTemplate<EthernetServer, EthernetClient>> {};
 
 const uint16_t REG = 512;               // Modbus Hreg Offset
-IPAddress remote(192, 168, 30, 12);  // Address of Modbus Slave device
 const int32_t showDelay = 5000;   // Show result every n'th mellisecond
 
 bool usingDhcp = true;
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEE }; // MAC address for your controller
-IPAddress ip(192, 168, 30, 178); // The IP address will be dependent on your local network
 ModbusEthernet mb;               // Declare ModbusTCP instance
+
+// Callback function for client connect. Returns true to allow connection.
+bool cbConn(IPAddress ip) {
+  Serial.println(ip);
+  return true;
+}
 
 void setup() {
     Serial.begin(9600);
@@ -52,6 +56,7 @@ void setup() {
         delay(1000);
     }
   mb.server();              // Act as Modbus TCP server
+  mb.onConnect(cbConn);
   mb.addHreg(100);          // Expose Holding Register #100
 }
 
