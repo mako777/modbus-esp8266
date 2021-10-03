@@ -19,6 +19,7 @@ const int32_t showDelay = 5000;   // Show result every n'th mellisecond
 
 bool usingDhcp = true;
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEE }; // MAC address for your controller
+IPAddress ip(192, 168, 30, 178); // The IP address will be dependent on your local network
 ModbusEthernet mb;               // Declare ModbusTCP instance
 
 // Callback function for client connect. Returns true to allow connection.
