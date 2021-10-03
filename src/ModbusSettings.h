@@ -66,7 +66,7 @@ Outgoing request timeout
 ESP32 only. Outgoing connection attempt timeout
 */
 #define MODBUSIP_TIMEOUT 1000
-#define MODBUSIP_CONNECT_TIMEOUT 1000
+//#define MODBUSIP_CONNECT_TIMEOUT 1000
 
 #define MODBUSIP_UNIT	  255
 #define MODBUSIP_MAX_TRANSACTIONS 16

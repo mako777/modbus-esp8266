@@ -50,10 +50,10 @@ For more information about Modbus see:
 // 5.0.0-DEV
 + Settings: Added MODBUSIP_CONNECTION_TIMEOUT (ESP32 only)
 + Settings: Set MODBUSIP_MAX_CLIENTS = 8 for ESP32
-+ API: Raw Modbus frame processing functionality (TCP/TLS Client/Server, RTU Server)
-- API: Raw Modbus frame processing functionality (RTU Client)
++ API: Raw Modbus frame processing functionality
 + Examples: True ModbusRTU to ModbusTCP Server bridge
 - ModbusTCP: ModbusAsyncTCP
+- Refactor connect by dns name (using native implementation for ESP32 etc)
 // 4.1.0-DEV
 - ModbusTLS: ESP32 Server
 - Test: TLS ESP32 Server

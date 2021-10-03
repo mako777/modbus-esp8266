@@ -165,7 +165,7 @@ bool ModbusTCPTemplate<SERVER, CLIENT>::connect(IPAddress ip, uint16_t port) {
 		return false;
 	tcpclient[p] = new CLIENT();
 	BIT_CLEAR(tcpServerConnection, p);
-#if defined(ESP32)
+#if defined(ESP32) && defined(MODBUSIP_CONNECT_TIMEOUT)
 	if (!tcpclient[p]->connect(ip, port?port:defaultPort, MODBUSIP_CONNECT_TIMEOUT)) {
 #else
 	if (!tcpclient[p]->connect(ip, port?port:defaultPort)) {
