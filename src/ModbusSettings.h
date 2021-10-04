@@ -64,6 +64,7 @@ If defined regisers count will be limited.
 #define MODBUSIP_UNIQUE_CLIENTS
 #define MODBUSIP_MAX_READMS 100
 #define MODBUSIP_FULL
+#define MODBUSIP_DEBUG
 
 //#define MODBUSRTU_DEBUG
 #define MODBUSRTU_BROADCAST 0
