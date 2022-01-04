@@ -242,7 +242,7 @@ void ModbusTCPTemplate<SERVER, CLIENT>::task() {
 	for (n = 0; n < MODBUSIP_MAX_CLIENTS; n++) {
 		if (!tcpclient[n]) continue;
 		if (!tcpclient[n]->connected()) continue;
-		while (millis() - taskStart < MODBUSIP_MAX_READMS &&  tcpclient[n]->available() > sizeof(_MBAP)) {
+		while (millis() - taskStart < MODBUSIP_MAX_READMS &&  (size_t)tcpclient[n]->available() > sizeof(_MBAP)) {
 #if defined(MODBUSIP_DEBUG)
 			Serial.print(n);
 			Serial.print(": Bytes available ");
