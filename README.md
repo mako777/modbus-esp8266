@@ -47,13 +47,21 @@ For more information about Modbus see:
 ## Last Changes
 
 ```diff
-// 5.0.0-DEV
-+ Settings: Added MODBUSIP_CONNECTION_TIMEOUT (ESP32 only)
-+ Settings: Set MODBUSIP_MAX_CLIENTS = 8 for ESP32
-+ API: Raw Modbus frame processing functionality
-+ Examples: True ModbusRTU to ModbusTCP Server bridge
-- ModbusTCP: ModbusAsyncTCP
-- Refactor connect by dns name (using native implementation for ESP32 etc)
+// 4.0.0
++ Support of all Arduino boards
++ ModbusTLS: ESP8266 Client/Server and ESP32 Client
++ ModbusTCP: ModbusEthernet - WizNet W5x00, ENC28J60 Ethernet library support
++ 0x14 - Read File Records function
++ 0x15 - Write File Records function
++ Examples: FW update over Modbus fullfunctional example
++ 0x16 - Write Mask Register function+ Test: 0x16
++ 0x17 - Read/Write Registers function
++ ModbusRTU: ESP32 SoftwareSerial support
++ Build with no STL dependency (switchable)
++ API: ModbusIP => ModbusTCP
++ API: Access control callback for individual Modbus function
++ API: Master/Slave => Client/Server according to [PRESS RELEASE](https://modbus.org/docs/Client-ServerPR-07-2020-final.docx.pdf)
++ Lot of code refacting and small fixes
 // 4.1.0-DEV
 - ModbusTLS: ESP32 Server
 - Test: TLS ESP32 Server
@@ -72,18 +80,13 @@ For more information about Modbus see:
 - Test: W5x00 with Ethernet library v1
 - Examples: Basic file operations
 - Examples: Revising
-// 4.0.0
-+ Support for all Arduino platforms
-+ ModbusTLS support ESP8266 Client/Server, ESP32 Client
-+ STL and No-STL build type
-+ W5x00 Ethernet library support for all platforms
-+ 0x14 - Read File Records function
-+ 0x15 - Write File Records function
-+ 0x16 - Write Mask Register function
-+ 0x17 - Read/Write Registers function
-+ API extended
-+ ModbusRTU ESP32 SoftwareSerial support
-+ API: Master/Slave => Client/Server according to [PRESS RELEASE](https://modbus.org/docs/Client-ServerPR-07-2020-final.docx.pdf)
++ Settings: Added MODBUSIP_CONNECTION_TIMEOUT (ESP32 only)
++ Settings: Set MODBUSIP_MAX_CLIENTS = 8 for ESP32
++ API: Raw Modbus frame processing functionality
++ Examples: True ModbusRTU to ModbusTCP Server bridge
+- ModbusTCP: ModbusAsyncTCP
+- Refactor connect by dns name (using native implementation for ESP32 etc)
+- ESP32: Fix dns resolver conflict when using Ethernet.h and WiFi.h together
 ```
 
 ## Contributions
