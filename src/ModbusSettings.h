@@ -78,6 +78,7 @@ ESP32 only. Outgoing connection attempt timeout
 #define MODBUSIP_UNIQUE_CLIENTS
 #define MODBUSIP_MAX_READMS 100
 #define MODBUSIP_FULL
+#define MODBUSIP_DEBUG
 
 //#define MODBUSRTU_DEBUG
 #define MODBUSRTU_BROADCAST 0
@@ -85,6 +86,11 @@ ESP32 only. Outgoing connection attempt timeout
 #define MB_SERIAL_BUFFER 128
 #define MODBUSRTU_TIMEOUT 1000
 #define MODBUSRTU_MAX_READMS 100
+/*
+#define MODBUSRTU_REDE
+Enable using separate pins for RE DE
+*/
+#define MODBUSRTU_REDE
 
 // Define for internal use. Do not change.
 #define MODBUSRTU_TIMEOUT_US 1000UL * MODBUSRTU_TIMEOUT

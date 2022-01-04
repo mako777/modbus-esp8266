@@ -47,29 +47,17 @@ For more information about Modbus see:
 ## Last Changes
 
 ```diff
-// 4.0.0
-+ Support of all Arduino boards
-+ ModbusTLS: ESP8266 Client/Server and ESP32 Client
-+ ModbusTCP: ModbusEthernet - WizNet W5x00, ENC28J60 Ethernet library support
-+ 0x14 - Read File Records function
-+ 0x15 - Write File Records function
-+ Examples: FW update over Modbus fullfunctional example
-+ 0x16 - Write Mask Register function+ Test: 0x16
-+ 0x17 - Read/Write Registers function
-+ ModbusRTU: ESP32 SoftwareSerial support
-+ Build with no STL dependency (switchable)
-+ API: ModbusIP => ModbusTCP
-+ API: Access control callback for individual Modbus function
-+ API: Master/Slave => Client/Server according to [PRESS RELEASE](https://modbus.org/docs/Client-ServerPR-07-2020-final.docx.pdf)
-+ Lot of code refacting and small fixes
 // 4.1.0-DEV
++ ModbusRTU: Add separate RE/DE pins control
+- ModbusRTU: Add direction control pin for Stream
+- ModbusRTU: Static buffer allocation.
+- API: Extend API to allow custom Modbus commands
+- STL: Add Reg count limitation to vector limit of 4000 for ESP (re-check first) 
 - ModbusTLS: ESP32 Server
 - Test: TLS ESP32 Server
 - Test: TLS ESP32 Client
 - Examples: TLS Certificate test Role extension and Alt-Name
 - Examples: TLS Add example explanation
-- ModbusRTU: Add direction control pin for Stream
-- ModbusRTU: Static buffer allocation.
 - Buffer/packet size limitation support
 - Slave/Server: slavePDU use early exit by return where possible
 - Master/Client: Check frame size against header data where possible
@@ -87,6 +75,22 @@ For more information about Modbus see:
 - ModbusTCP: ModbusAsyncTCP
 - Refactor connect by dns name (using native implementation for ESP32 etc)
 - ESP32: Fix dns resolver conflict when using Ethernet.h and WiFi.h together
+=======
+// 4.0.0
++ Support of all Arduino boards
++ ModbusTLS: ESP8266 Client/Server and ESP32 Client
++ ModbusTCP: ModbusEthernet - WizNet W5x00, ENC28J60 Ethernet library support
++ 0x14 - Read File Records function
++ 0x15 - Write File Records function
++ Examples: FW update over Modbus fullfunctional example
++ 0x16 - Write Mask Register function+ Test: 0x16
++ 0x17 - Read/Write Registers function
++ ModbusRTU: ESP32 SoftwareSerial support
++ Build with no STL dependency (switchable)
++ API: ModbusIP => ModbusTCP
++ API: Access control callback for individual Modbus function
++ API: Master/Slave => Client/Server according to [PRESS RELEASE](https://modbus.org/docs/Client-ServerPR-07-2020-final.docx.pdf)
++ Lot of code refacting and small fixes
 ```
 
 ## Contributions
