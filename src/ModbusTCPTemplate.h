@@ -64,7 +64,7 @@ class ModbusTCPTemplate : public Modbus {
 	#else
 	DArray<TTransaction, 2, 2> _trans;
 	#endif
-	int16_t		transactionId = 0;  // Last started transaction. Increments on unsuccessful transaction start too.
+	int16_t		transactionId = 1;  // Last started transaction. Increments on unsuccessful transaction start too.
 	int8_t n = -1;
 	bool autoConnectMode = false;
 	uint16_t serverPort = 0;
@@ -115,6 +115,7 @@ class ModbusTCPTemplate : public Modbus {
 	uint32_t eventSource() override;
 	void autoConnect(bool enabled = true);
 	void dropTransactions();
+	uint16_t setTransactionId(uint16_t);
 	#if defined(MODBUS_USE_STL)
 	static IPAddress defaultResolver(const char*) {return IPADDR_NONE;}
 	#else
@@ -218,8 +219,10 @@ void ModbusTCPTemplate<SERVER, CLIENT>::task() {
 			Serial.println("IP: Accepted");
 #endif
 			CLIENT* currentClient = new CLIENT(c);
-			if (!currentClient || !currentClient->connected())
+			if (!currentClient || !currentClient->connected()) {
+				delete currentClient;
 				continue;
+			}
 #if defined(MODBUSRTU_DEBUG)
 			Serial.println("IP: Connected");
 #endif
@@ -306,7 +309,7 @@ void ModbusTCPTemplate<SERVER, CLIENT>::task() {
 							if (trans) { // if valid transaction id
 								if ((_frame[0] & 0x7F) == trans->_frame[0]) { // Check if function code the same as requested
 									if (_reply == EX_PASSTHROUGH)
-										masterPDU(_frame, trans->_frame, trans->startreg, trans->data);	// Procass incoming frame as master
+										masterPDU(_frame, trans->_frame, trans->startreg, trans->data);	// Process incoming frame as master
 								}
 								else {
 									_reply = EX_UNEXPECTED_RESPONSE;
@@ -371,15 +374,17 @@ uint16_t ModbusTCPTemplate<SERVER, CLIENT>::send(IPAddress ip, TAddress startreg
 #endif
 	if (!ip)
 		return 0;
-	p = getSlave(ip);
+	if (tcpserver) {
+		p = getMaster(ip);
+	} else {
+		p = getSlave(ip);
+	}
 	if (p == -1 || !tcpclient[p]->connected()) {
 		if (!autoConnectMode)
 			goto cleanup;
 		if (!connect(ip))
 			goto cleanup;
 	}
-	transactionId++;
-	if (!transactionId) transactionId = 1;
 	_MBAP.transactionId	= __swap_16(transactionId);
 	_MBAP.protocolId	= __swap_16(0);
 	_MBAP.length		= __swap_16(_len+1);     //_len+1 for last byte from MBAP
@@ -407,6 +412,9 @@ uint16_t ModbusTCPTemplate<SERVER, CLIENT>::send(IPAddress ip, TAddress startreg
 		_frame = nullptr;
 	}
 	result = transactionId;
+	transactionId++;
+	if (!transactionId)
+		transactionId = 1;
 	cleanup:
 	free(_frame);
 	_frame = nullptr;
@@ -538,7 +546,7 @@ bool ModbusTCPTemplate<SERVER, CLIENT>::disconnect(IPAddress ip) {
 		return false;
 	int8_t p = getSlave(ip);
 	if (p != -1) {
-		tcpclient[p]->stop();
+		//tcpclient[p]->stop();
 		delete tcpclient[p];
 		tcpclient[p] = nullptr;
 		return true;
@@ -559,6 +567,7 @@ void ModbusTCPTemplate<SERVER, CLIENT>::dropTransactions() {
 template <class SERVER, class CLIENT>
 ModbusTCPTemplate<SERVER, CLIENT>::~ModbusTCPTemplate() {
 	free(_frame);
+	_frame = nullptr;
 	dropTransactions();
 	cleanupConnections();
 	cleanupTransactions();
@@ -569,3 +578,12 @@ ModbusTCPTemplate<SERVER, CLIENT>::~ModbusTCPTemplate() {
 		tcpclient[i] = nullptr;
 	}
 }
+
+template <class SERVER, class CLIENT>
+uint16_t ModbusTCPTemplate<SERVER, CLIENT>::setTransactionId(uint16_t t) {
+	transactionId = t;
+	if (!transactionId)
+		transactionId = 1;
+	return transactionId;
+}
+

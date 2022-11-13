@@ -22,6 +22,7 @@ static inline uint16_t __swap_16(uint16_t num) { return (num >> 8) | (num << 8);
 #define ISTS(n) (TAddress){TAddress::ISTS, n}
 #define IREG(n) (TAddress){TAddress::IREG, n}
 #define HREG(n) (TAddress){TAddress::HREG, n}
+#define NULLREG (TAddress){TAddress::NONE, 0xFFFF}
 #define BIT_VAL(v) (v?0xFF00:0x0000)
 #define BIT_BOOL(v) (v==0xFF00)
 #define COIL_VAL(v) (v?0xFF00:0x0000)
@@ -40,7 +41,7 @@ typedef uint16_t (*cbModbus)(TRegister* reg, uint16_t val); // Callback function
 #endif
 
 struct TAddress {
-    enum RegType {COIL, ISTS, IREG, HREG};
+    enum RegType {COIL, ISTS, IREG, HREG, NONE = 0xFF};
     RegType type;
     uint16_t address;
     bool operator==(const TAddress &obj) const { // TAddress == TAddress
@@ -193,8 +194,8 @@ class Modbus {
 
         ~Modbus();
 
-        void cbEnable(bool state = true);
-        void cbDisable();
+        bool cbEnable(const bool state = true);
+        bool cbDisable();
 
     private:
 	    ResultCode readBits(TAddress startreg, uint16_t numregs, FunctionCode fn);

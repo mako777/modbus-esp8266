@@ -14,7 +14,7 @@ Processing routine. Should be periodically called form loop().
 bool addHreg(uint16_t offset, uint16_t value = 0, uint16_t numregs = 1);
 bool addCoil(uint16_t offset, bool value = false, uint16_t numregs = 1);
 bool addIsts(uint16_t offset, bool value = false, uint16_t numregs = 1);
-bool addIreg(uint16_t offset, uint16_t value = 0, uint16_t nemregs = 1);
+bool addIreg(uint16_t offset, uint16_t value = 0, uint16_t numregs = 1);
 ```
 
 ### Write local reg
@@ -203,7 +203,7 @@ Callback generation control. Callback generation is enabled by default. *Has no 
 
 ```c
 void onConnect(cbModbusConnect cb);
-void onDisonnect(cbModbusConnect cb);
+void onDisconnect(cbModbusConnect cb);
 ```
 
 *Modbus TCP Server* Assign callback function on new incoming connection event.
